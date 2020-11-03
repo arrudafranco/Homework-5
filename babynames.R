@@ -3,13 +3,12 @@ library(babynames)
 library(glue)
 
 # plot total US births using a stacked area chart
-applicants %>%
+applicants_simple <- applicants %>% #it was easier to debug after creating a new object for the transformed dataframe, separated from the graph
   mutate(
     sex = if_else(sex == "F", "Female", "Male"),
-    n_all = n_all / 1e06
-  ) %>%
-  ggplot(mapping = aes(x = year, y = n_all, fill = sex)) +
-  geom_ribbon() +
+    n_all = n_all / 1e06)
+ggplot(applicants_simple, aes(x = year, y = n_all, fill = sex)) +
+  geom_area() + #geom_area was easier because it didn't require manual inputs of ymin and ymax
   scale_fill_brewer(type = "qual") +
   labs(
     title = "Total US births",
@@ -28,7 +27,7 @@ name_trend <- function(person_name) {
     geom_line() +
     scale_color_brewer(type = "qual") +
     labs(
-      title = glue(Name: {person_name}),
+      title = glue("Name: ", {person_name}), #"Name: " is a string in this case, thus had to be between parenthesis
       x = "Year",
       y = "Number of births",
       color = NULL
