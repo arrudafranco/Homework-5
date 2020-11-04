@@ -40,31 +40,29 @@ name_trend("Benjamin")
 # write function to show trends over time for top N names in a specific year
 top_n_trend <- function(n_year, n_rank = 5) {
   # create lookup table
-  top_names <- babynames %>%
-    group_by(year) %>%
-    arrange(n) %>%
-    slice_head(prop = 0.25)
+  #top_names <- babynames %>%
+   # group_by(year) %>%
+    #arrange(n) %>%
+    #slice_head(prop = 0.25)
     #select(name, sex)
   
   # filter babynames for top_names
-  filtered_names <- babynames %>%
-    inner_join(top_names)
+#  filtered_names <- babynames %>%
+ #   inner_join(top_names)
   
   # get the top N names from n_year
   top_names <- babynames %>%
     filter(year == n_year) %>%
-    group_by(name, sex) %>%
-    summarize(count = sum(count)) %>%
     group_by(sex) %>%
-    mutate(rank = min_rank(desc(count))) %>%
+    mutate(rank = min_rank(desc(n))) %>% 
     filter(rank <= n_rank) %>%
     arrange(sex, rank) %>%
     select(name, sex, rank)
   
   # keep just the top N names over time and plot
-  filtered_names %>%
-    inner_join(select(top_names, sex, name)) %>%
-    ggplot(mapping = aes(x = year, y = count, color = name)) +
+  babynames %>%
+    inner_join(top_names, by = c("name", "sex")) %>% #inner_join syntax was wrong
+    ggplot(mapping = aes(x = year, y = n, color = name)) +
     facet_wrap(~sex, ncol = 1) +
     geom_line() +
     scale_color_brewer(type = "qual", palette = "Set3") +
@@ -80,6 +78,7 @@ top_n_trend <- function(n_year, n_rank = 5) {
 top_n_trend(n_year = 1986)
 top_n_trend(n_year = 2014)
 top_n_trend(n_year = 1986, n_rank = 10)
+
 
 # compare naming trends to disney princess film releases
 disney <- tribble(
@@ -105,7 +104,7 @@ babynames %>%
   mutate(name = fct_reorder(.f = name, .x = release_year)) %>%
   # plot the trends over time, indicating release year
   ggplot(mapping = aes(x = year, y = n)) +
-  facet_wrap(~ name + film, scales = "free_y") #the facet_wrap is already labeling the faceting by two factors+
+  facet_wrap(~ name + film, scales = "free_y", labeller = label_both) + #the facet_wrap is already labeling the faceting by two factors, plus there was a syntax mistake for labeller
   geom_line() +
   geom_vline(mapping = aes(xintercept = release_year), linetype = 2, alpha = .5) +
   scale_x_continuous(breaks = c(1880, 1940, 2000)) +
