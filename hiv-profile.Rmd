@@ -1,14 +1,17 @@
 ---
+
 title: "Country Profile"
 output:
-github_document:
+  github_document:
     toc: true
+
 ---
 
-```{r setup, include=FALSE}
+```{r first_step, include=FALSE}
+#library(knitr)
 knitr::opts_chunk$get() 
 library(tidyverse)
-# install.packages("countrycode")
+#install.packages("countrycode")
 library(countrycode)
 theme_set(theme_minimal())
 ```
@@ -27,11 +30,8 @@ The file `hiv_rates.csv` contains a tidy dataset with six columns:
 hiv <- read_csv("data/hiv_rates.csv") %>% 
   janitor::clean_names() %>%
   mutate(country_name = countrycode(iso3, "iso3c", "country.name"))
-
 ```
-
 ```{r reports}
-
 reports <- tibble(
   country = unique(hiv$iso3),
   filename = stringr::str_c("hiv-profile-", country, ".html"),
@@ -41,7 +41,6 @@ reports <- tibble(
 reports %>% 
   select(output_file = filename, params) %>% 
   purrr::pwalk(rmarkdown::render, input = "hiv-profile.Rmd")
-
 ```
 
 ```{r customize, include = FALSE}
@@ -66,7 +65,7 @@ single_iso %>%
 
 How has HIV incidence changed over time in `r my_country`?
 
-```{r plot}
+```{r plot1}
 plot_title <- glue::glue("Country: {my_country}")
 single_iso %>%
   ggplot(aes(x = year, y = hiv_pct_15_to_49)) +
@@ -102,8 +101,8 @@ single_iso %>%
 
 How does `r my_country` compare in `r most_recent`?
 
-```{r plot, fig.height = 14}
-plot_title <- glue::glue("Year: {most_recent}")
+```{r plot2, fig.height = 14}
+plot2_title <- glue::glue("Year: {most_recent}")
 hiv %>%
   filter(year == most_recent) %>%
   ggplot(aes(x = fct_reorder(country_name, hiv_pct_15_to_49), y = hiv_pct_15_to_49)) +
@@ -113,7 +112,7 @@ hiv %>%
   scale_y_continuous(labels = scales::percent) +
   coord_flip() +
   labs(
-    title = plot_title,
+    title = plot2_title,
     x = NULL,
     y = "HIV prevalence, age 15-49"
   )
