@@ -3,12 +3,12 @@ library(babynames)
 library(glue)
 
 # plot total US births using a stacked area chart
-applicants_simple <- applicants %>% #it was easier to debug after creating a new object for the transformed dataframe, separated from the graph
+applicants_simple <- applicants %>%
   mutate(
     sex = if_else(sex == "F", "Female", "Male"),
     n_all = n_all / 1e06)
 ggplot(applicants_simple, aes(x = year, y = n_all, fill = sex)) +
-  geom_area() + #geom_area was easier because it didn't require manual inputs of ymin and ymax
+  geom_area() +
   scale_fill_brewer(type = "qual") +
   labs(
     title = "Total US births",
@@ -27,7 +27,7 @@ name_trend <- function(person_name) {
     geom_line() +
     scale_color_brewer(type = "qual") +
     labs(
-      title = glue("Name: ", {person_name}), #"Name: " is a string in this case, thus had to be between parenthesis
+      title = glue("Name: ", {person_name}),
       x = "Year",
       y = "Number of births",
       color = NULL
@@ -40,15 +40,9 @@ name_trend("Benjamin")
 # write function to show trends over time for top N names in a specific year
 top_n_trend <- function(n_year, n_rank = 5) {
   # create lookup table
-  #top_names <- babynames %>%
-   # group_by(year) %>%
-    #arrange(n) %>%
-    #slice_head(prop = 0.25)
-    #select(name, sex)
-  
-  # filter babynames for top_names
-#  filtered_names <- babynames %>%
- #   inner_join(top_names)
+  top_names <- babynames %>%
+    group_by(year) %>%
+    filter(n > 1000)
   
   # get the top N names from n_year
   top_names <- babynames %>%
@@ -61,7 +55,7 @@ top_n_trend <- function(n_year, n_rank = 5) {
   
   # keep just the top N names over time and plot
   babynames %>%
-    inner_join(top_names, by = c("name", "sex")) %>% #inner_join syntax was wrong
+    inner_join(top_names, by = c("name", "sex")) %>%
     ggplot(mapping = aes(x = year, y = n, color = name)) +
     facet_wrap(~sex, ncol = 1) +
     geom_line() +
@@ -82,7 +76,7 @@ top_n_trend(n_year = 1986, n_rank = 10)
 
 # compare naming trends to disney princess film releases
 disney <- tribble(
-  ~princess,  ~film, ~release_year, #~ was missing, thus column names were not declared according to tribble documentation
+  ~princess,  ~film, ~release_year,
   "Snow White", "Snow White and the Seven Dwarfs", 1937,
   "Cinderella", "Cinderella", 1950,
   "Aurora", "Sleeping Beauty", 1959,
@@ -104,7 +98,7 @@ babynames %>%
   mutate(name = fct_reorder(.f = name, .x = release_year)) %>%
   # plot the trends over time, indicating release year
   ggplot(mapping = aes(x = year, y = n)) +
-  facet_wrap(~ name + film, scales = "free_y", labeller = label_both) + #the facet_wrap is already labeling the faceting by two factors, plus there was a syntax mistake for labeller
+  facet_wrap(~ name + film, scales = "free_y", labeller = label_both) +
   geom_line() +
   geom_vline(mapping = aes(xintercept = release_year), linetype = 2, alpha = .5) +
   scale_x_continuous(breaks = c(1880, 1940, 2000)) +
