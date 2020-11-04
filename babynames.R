@@ -41,17 +41,17 @@ name_trend("Benjamin")
 top_n_trend <- function(n_year, n_rank = 5) {
   # create lookup table
   top_names <- babynames %>%
-    group_by(name, sex) %>%
-    summarize(count = as.numeric(sum(count))) %>%
-    filter(count > 1000) %>%
-    select(name, sex)
+    group_by(year) %>%
+    arrange(n) %>%
+    slice_head(prop = 0.25)
+    #select(name, sex)
   
   # filter babynames for top_names
   filtered_names <- babynames %>%
     inner_join(top_names)
   
   # get the top N names from n_year
-  top_names <- filtered_names %>%
+  top_names <- babynames %>%
     filter(year == n_year) %>%
     group_by(name, sex) %>%
     summarize(count = sum(count)) %>%
@@ -83,7 +83,7 @@ top_n_trend(n_year = 1986, n_rank = 10)
 
 # compare naming trends to disney princess film releases
 disney <- tribble(
-  "princess",  "film", "release_year",
+  ~princess,  ~film, ~release_year, #~ was missing, thus column names were not declared according to tribble documentation
   "Snow White", "Snow White and the Seven Dwarfs", 1937,
   "Cinderella", "Cinderella", 1950,
   "Aurora", "Sleeping Beauty", 1959,
@@ -101,13 +101,11 @@ disney <- tribble(
 
 ## join together the data frames
 babynames %>%
-  # ignore men named after princesses - is this fair?
-  filter(sex == F) %>%
   inner_join(disney, by = c("name" = "princess")) %>%
   mutate(name = fct_reorder(.f = name, .x = release_year)) %>%
   # plot the trends over time, indicating release year
   ggplot(mapping = aes(x = year, y = n)) +
-  facet_wrap(~ name + film, scales = "free_y", labeller = label_both()) +
+  facet_wrap(~ name + film, scales = "free_y") #the facet_wrap is already labeling the faceting by two factors+
   geom_line() +
   geom_vline(mapping = aes(xintercept = release_year), linetype = 2, alpha = .5) +
   scale_x_continuous(breaks = c(1880, 1940, 2000)) +
